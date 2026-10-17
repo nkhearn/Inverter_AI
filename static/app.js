@@ -308,7 +308,7 @@ function buildTableHtml(rows) {
         table += '</tr>';
     });
 
-    table += 'tbody></table>';
+    table += '</tbody></table>';
     if (rows.length > 20) {
         table += `<p style="font-size: 0.75rem; margin-top: 0.25rem; color: var(--text-secondary);">Showing first 20 of ${rows.length} rows.</p>`;
     }
