@@ -21,12 +21,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Form handlers
     document.getElementById('settings-form').addEventListener('submit', handleSaveSettings);
     document.getElementById('query-form').addEventListener('submit', handleQuerySubmit);
-    document.getElementById('primary-provider').addEventListener('change', updateActiveProviderLabel);
+    document.getElementById('primary-provider').addEventListener('change', () => {
+        updateActiveProviderLabel();
+        toggleGoogleAuthSection();
+    });
+    document.getElementById('google-auth-type').addEventListener('change', toggleGoogleAuthSection);
+    document.getElementById('google-signin-btn').addEventListener('click', handleGoogleSignIn);
 });
 
 function getSettings() {
     return {
         provider: localStorage.getItem('inv_provider') || 'google',
+        googleAuthType: localStorage.getItem('inv_google_auth_type') || 'api_key',
+        googleClientId: localStorage.getItem('inv_google_client_id') || '',
+        googleAccessToken: localStorage.getItem('inv_google_access_token') || '',
         geminiKeys: parseKeys(localStorage.getItem('inv_gemini_keys') || ''),
         groqKeys: parseKeys(localStorage.getItem('inv_groq_keys') || ''),
         openrouterKeys: parseKeys(localStorage.getItem('inv_openrouter_keys') || ''),
@@ -42,6 +50,9 @@ function parseKeys(str) {
 function loadSettings() {
     const settings = getSettings();
     document.getElementById('primary-provider').value = settings.provider;
+    document.getElementById('google-auth-type').value = settings.googleAuthType;
+    document.getElementById('google-client-id').value = settings.googleClientId;
+    document.getElementById('google-access-token').value = settings.googleAccessToken;
     document.getElementById('gemini-keys').value = (settings.geminiKeys || []).join('\n');
     document.getElementById('groq-keys').value = (settings.groqKeys || []).join('\n');
     document.getElementById('openrouter-keys').value = (settings.openrouterKeys || []).join('\n');
@@ -49,6 +60,60 @@ function loadSettings() {
     document.getElementById('mcp-server-url').value = settings.mcpUrl;
 
     updateActiveProviderLabel();
+    toggleGoogleAuthSection();
+}
+
+function toggleGoogleAuthSection() {
+    const provider = document.getElementById('primary-provider').value;
+    const authType = document.getElementById('google-auth-type').value;
+
+    const keyGroup = document.getElementById('google-api-key-group');
+    const oauthGroup = document.getElementById('google-oauth-group');
+
+    if (provider === 'google') {
+        if (authType === 'oauth') {
+            keyGroup.style.display = 'none';
+            oauthGroup.style.display = 'block';
+        } else {
+            keyGroup.style.display = 'block';
+            oauthGroup.style.display = 'none';
+        }
+    } else {
+        keyGroup.style.display = 'block';
+        oauthGroup.style.display = 'none';
+    }
+}
+
+function handleGoogleSignIn() {
+    const clientId = document.getElementById('google-client-id').value.trim();
+    if (!clientId) {
+        alert('Please enter a Google OAuth Client ID in the field above before signing in.');
+        return;
+    }
+
+    if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+        alert('Google Identity Services script failed to load. Please check your internet connection or enter an access token manually.');
+        return;
+    }
+
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/generative-language',
+        callback: (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+                document.getElementById('google-access-token').value = tokenResponse.access_token;
+                localStorage.setItem('inv_google_access_token', tokenResponse.access_token);
+
+                const saveStatus = document.getElementById('save-status');
+                saveStatus.innerText = '✓ Signed in with Google! Access token retrieved.';
+                setTimeout(() => { saveStatus.innerText = ''; }, 4000);
+            } else if (tokenResponse && tokenResponse.error) {
+                alert('Google Sign-In Error: ' + tokenResponse.error);
+            }
+        },
+    });
+
+    tokenClient.requestAccessToken();
 }
 
 function updateActiveProviderLabel() {
@@ -66,6 +131,9 @@ function updateActiveProviderLabel() {
 function handleSaveSettings(e) {
     e.preventDefault();
     const provider = document.getElementById('primary-provider').value;
+    const googleAuthType = document.getElementById('google-auth-type').value;
+    const googleClientId = document.getElementById('google-client-id').value;
+    const googleAccessToken = document.getElementById('google-access-token').value;
     const geminiKeys = document.getElementById('gemini-keys').value;
     const groqKeys = document.getElementById('groq-keys').value;
     const openrouterKeys = document.getElementById('openrouter-keys').value;
@@ -73,6 +141,9 @@ function handleSaveSettings(e) {
     const mcpUrl = document.getElementById('mcp-server-url').value;
 
     localStorage.setItem('inv_provider', provider);
+    localStorage.setItem('inv_google_auth_type', googleAuthType);
+    localStorage.setItem('inv_google_client_id', googleClientId);
+    localStorage.setItem('inv_google_access_token', googleAccessToken);
     localStorage.setItem('inv_gemini_keys', geminiKeys);
     localStorage.setItem('inv_groq_keys', groqKeys);
     localStorage.setItem('inv_openrouter_keys', openrouterKeys);
@@ -128,15 +199,19 @@ async function handleQuerySubmit(e) {
     else if (settings.provider === 'openai') keys = settings.openaiKeys;
 
     try {
+        const payload = {
+            prompt: promptText,
+            provider: settings.provider,
+            auth_type: settings.provider === 'google' ? settings.googleAuthType : 'api_key',
+            access_token: settings.googleAccessToken,
+            api_keys: keys,
+            mcp_url: settings.mcpUrl
+        };
+
         const response = await fetch('/api/query', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                prompt: promptText,
-                provider: settings.provider,
-                api_keys: keys,
-                mcp_url: settings.mcpUrl
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();

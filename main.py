@@ -50,6 +50,8 @@ def shutdown_event():
 class QueryRequest(BaseModel):
     prompt: str
     provider: str = "google"
+    auth_type: str = "api_key"  # 'api_key' or 'oauth'
+    access_token: Optional[str] = None
     api_keys: List[str] = []
     model_name: Optional[str] = None
     mcp_url: Optional[str] = None
@@ -91,7 +93,9 @@ def process_query(req: QueryRequest):
             provider=req.provider,
             keys=req.api_keys,
             user_prompt=req.prompt,
-            model_name=req.model_name
+            model_name=req.model_name,
+            auth_type=req.auth_type,
+            access_token=req.access_token
         )
         return res
     except Exception as e:

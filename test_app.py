@@ -56,6 +56,34 @@ class TestInverterAISystem(unittest.TestCase):
         self.assertIn('summary', res)
         self.assertIsNone(res['error'])
 
+    def test_google_oauth_missing_token_error(self):
+        """Test error when Google OAuth mode is selected without access token."""
+        orch = LLMOrchestrator('http://127.0.0.1:8000/mcp')
+        with self.assertRaises(ValueError) as ctx:
+            orch.execute_with_llm(
+                provider='google',
+                keys=[],
+                user_prompt='Test prompt',
+                auth_type='oauth',
+                access_token=''
+            )
+        self.assertIn('access token is required', str(ctx.exception))
+
+    def test_api_query_oauth_missing_token(self):
+        """Test FastAPI /api/query endpoint with google provider and oauth auth_type without access token."""
+        payload = {
+            'prompt': 'Average solar output',
+            'provider': 'google',
+            'auth_type': 'oauth',
+            'access_token': '',
+            'api_keys': [],
+            'mcp_url': 'http://127.0.0.1:8000/mcp'
+        }
+        response = self.client.post('/api/query', json=payload)
+        self.assertEqual(response.status_code, 500)
+        data = response.json()
+        self.assertIn('access token is required', data['detail'])
+
     def test_mcp_security_restriction(self):
         """Test non-SELECT query restriction in execute_query tool."""
         async def _test():
