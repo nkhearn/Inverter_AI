@@ -1,0 +1,393 @@
+:root {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-card-hover: #334155;
+    --accent: #38bdf8;
+    --accent-hover: #0284c7;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --border: #334155;
+    --success: #22c55e;
+    --warning: #eab308;
+    --danger: #ef4444;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background-color: #0b1120;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.brand-icon {
+    font-size: 1.75rem;
+    background: #1e293b;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.brand-text h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.badge {
+    font-size: 0.7rem;
+    background: #0284c7;
+    color: white;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.nav-item.active {
+    background-color: var(--accent);
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.mcp-status-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 0.85rem;
+    border-radius: 0.5rem;
+}
+
+.status-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--warning);
+}
+
+.status-dot.online {
+    background-color: var(--success);
+}
+
+.status-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-url {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-family: 'Fira Code', monospace;
+}
+
+/* Content Area */
+.content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    padding: 1.5rem 2rem;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: flex;
+}
+
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.top-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.active-provider-badge {
+    font-size: 0.85rem;
+    background-color: var(--bg-card);
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+}
+
+/* Chat Tab */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-right: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    max-width: 85%;
+}
+
+.message.user-message {
+    align-self: flex-end;
+}
+
+.message.user-message .message-content {
+    background-color: #0284c7;
+    color: white;
+    border-radius: 1rem 1rem 0.2rem 1rem;
+}
+
+.message.assistant-message, .message.system-message {
+    align-self: flex-start;
+}
+
+.message-content {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    border-radius: 0.2rem 1rem 1rem 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.sql-box {
+    margin-top: 0.75rem;
+    background-color: #0b1120;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.sql-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 0.4rem 0.75rem;
+    background-color: #1e293b;
+    border-bottom: 1px solid var(--border);
+}
+
+.sql-code {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    padding: 0.75rem;
+    color: #38bdf8;
+    white-space: pre-wrap;
+}
+
+.results-details {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.results-details summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.results-table-container {
+    max-height: 200px;
+    overflow: auto;
+    margin-top: 0.5rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    font-family: 'Fira Code', monospace;
+}
+
+th, td {
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+}
+
+th {
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+.chat-input-container {
+    margin-top: auto;
+}
+
+.chat-form {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.chat-form input {
+    flex: 1;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.85rem 1rem;
+    color: white;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.chat-form input:focus {
+    border-color: var(--accent);
+}
+
+.chat-form button {
+    background-color: var(--accent);
+    color: #0f172a;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.chat-form button:hover {
+    background-color: var(--accent-hover);
+    color: white;
+}
+
+/* Settings Tab */
+.settings-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    max-width: 700px;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    background-color: #0b1120;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    color: white;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.form-group textarea {
+    font-family: 'Fira Code', monospace;
+    resize: vertical;
+}
+
+.help-text {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    color: #0f172a;
+    font-weight: 600;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+}
+
+.save-status {
+    font-size: 0.85rem;
+    color: var(--success);
+    font-weight: 500;
+}

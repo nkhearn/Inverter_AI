@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inverter AI Telemetry Agent</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-text">
+                    <h2>Inverter AI</h2>
+                    <span class="badge">Edge MCP</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="chat-tab">
+                    <span class="icon">💬</span> Query Chat
+                </button>
+                <button class="nav-item" data-tab="settings-tab">
+                    <span class="icon">⚙️</span> Settings & Keys
+                </button>
+            </nav>
+
+            <div class="mcp-status-card">
+                <div class="status-header">
+                    <span class="status-dot" id="mcp-dot"></span>
+                    <span class="status-title">MCP Server</span>
+                </div>
+                <div class="status-url" id="mcp-url-display">0.0.0.0:8000/mcp</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <!-- Chat View -->
+            <section id="chat-tab" class="tab-content active">
+                <header class="top-header">
+                    <div>
+                        <h1>Inverter Telemetry AI Assistant</h1>
+                        <p class="subtitle">Ask questions about grid frequency, battery state, solar output, and power anomalies in natural language.</p>
+                    </div>
+                    <div class="active-provider-badge">
+                        Active Provider: <strong id="active-provider-label">Google Gemini</strong>
+                    </div>
+                </header>
+
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message system-message">
+                        <div class="message-content">
+                            👋 Hello! I am your edge-optimized inverter AI assistant. Ask me questions like:
+                            <ul>
+                                <li><em>"What was the average solar output and grid voltage over the past week?"</em></li>
+                                <li><em>"When did the generator struggle or grid frequency experience anomalies?"</em></li>
+                                <li><em>"Show me battery state of charge when solar output exceeded 2kW."</em></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <form id="query-form" class="chat-form">
+                        <input type="text" id="user-input" placeholder="Ask a telemetry question..." autocomplete="off" required />
+                        <button type="submit" id="send-btn">
+                            <span>Send</span> ➔
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="settings-tab" class="tab-content">
+                <header class="top-header">
+                    <div>
+                        <h1>Application & API Settings</h1>
+                        <p class="subtitle">API keys and credentials are stored safely in your browser's local storage.</p>
+                    </div>
+                </header>
+
+                <div class="settings-card">
+                    <form id="settings-form">
+                        <div class="form-group">
+                            <label for="primary-provider">Primary LLM Provider</label>
+                            <select id="primary-provider">
+                                <option value="google">Google AI Studio (Gemini 2.0 Flash)</option>
+                                <option value="groq">GroqCloud (Llama 3.3 70B)</option>
+                                <option value="openrouter">OpenRouter (:free endpoints)</option>
+                                <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+                                <option value="mock">Mock / Demo Engine (No API key required)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gemini-keys">Google Gemini API Keys (One key per line for rotation)</label>
+                            <textarea id="gemini-keys" rows="3" placeholder="AIzaSy..."></textarea>
+                            <span class="help-text">Free tier: 1,500 RPD per key. Add multiple keys for rotation.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="groq-keys">GroqCloud API Keys (One key per line)</label>
+                            <textarea id="groq-keys" rows="2" placeholder="gsk_..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="openrouter-keys">OpenRouter API Keys (One key per line)</label>
+                            <textarea id="openrouter-keys" rows="2" placeholder="sk-or-v1-..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="openai-keys">OpenAI API Keys (One key per line)</label>
+                            <textarea id="openai-keys" rows="2" placeholder="sk-..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mcp-server-url">FastMCP Server URL</label>
+                            <input type="text" id="mcp-server-url" value="http://127.0.0.1:8000/mcp" />
+                            <span class="help-text">Local FastMCP endpoint bound to 0.0.0.0:8000</span>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Settings to Browser Storage</button>
+                            <span id="save-status" class="save-status"></span>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
