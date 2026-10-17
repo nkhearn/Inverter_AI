@@ -68,13 +68,20 @@ An edge-optimized Python application for natural language querying of inverter l
 
 3. **Generate Sample Telemetry Database** (if `inverter_logs.db` does not exist):
    ```bash
-   python3 generate_sample_db.py
+   python3 generate_sample_db.py --db-path /path/to/custom_inverter_logs.db
    ```
-   *Generates 7 days of 1-minute inverter telemetry data (~10,080 rows).*
+   *Generates 7 days of 1-minute inverter telemetry data (~10,080 rows). Default output path is `inverter_logs.db`.*
 
 4. **Run the Application**:
    ```bash
+   # Using default database location (inverter_logs.db):
    python3 main.py
+
+   # Or specifying a custom database path via environment variable:
+   INVERTER_DB_PATH=/path/to/custom_inverter_logs.db python3 main.py
+
+   # Or starting the MCP server directly with a custom database path:
+   python3 inv_mcp.py --db-path /path/to/custom_inverter_logs.db
    ```
    *The FastAPI web server automatically manages and launches the FastMCP server in the background if it is not already running.*
 
@@ -97,6 +104,15 @@ Navigate to the **Settings & Keys** tab in the web interface to configure option
 | **Google OAuth Access Token** | OAuth 2.0 Bearer Token (auto-populated via browser Sign-in or entered manually). |
 | **Secondary Provider Keys** | Input API keys for GroqCloud, OpenRouter, or OpenAI. |
 | **FastMCP Server URL** | Default: `http://127.0.0.1:8000/mcp`. Configures where the orchestrator reaches the MCP server. |
+
+### Database Path Configuration
+
+The SQLite telemetry database location can be specified using any of the following methods (evaluated in order of precedence):
+
+1. **Tool parameter**: Explicit `db_path` argument passed to FastMCP tools (`get_schema(db_path=...)`, `execute_query(sql_query=..., db_path=...)`).
+2. **Environment variable**: `INVERTER_DB_PATH` or `DB_PATH` environment variables (e.g. `export INVERTER_DB_PATH=/var/data/inverter.db`).
+3. **Command line argument**: `--db-path`, `--db`, or `-d` when running `inv_mcp.py` or `generate_sample_db.py` (e.g. `python3 inv_mcp.py --db-path /var/data/inverter.db`).
+4. **Default fallback**: `inverter_logs.db` relative to the script directory.
 
 All settings are saved directly in your browser's `localStorage` and persist across sessions.
 

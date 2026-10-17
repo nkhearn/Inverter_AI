@@ -34,6 +34,9 @@ def ensure_mcp_server():
     # Launch FastMCP server process if not running
     if mcp_process is None or mcp_process.poll() is not None:
         cmd = [sys.executable, "inv_mcp.py"]
+        db_env = os.getenv("INVERTER_DB_PATH") or os.getenv("DB_PATH")
+        if db_env:
+            cmd.extend(["--db-path", db_env])
         mcp_process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(2)
 
