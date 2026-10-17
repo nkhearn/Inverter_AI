@@ -130,5 +130,35 @@ class TestInverterAISystem(unittest.TestCase):
         js_response = self.client.get('/static/app.js')
         self.assertEqual(js_response.status_code, 200)
 
+    def test_configurable_db_path_mcp_tools(self):
+        """Test tools using custom SQLite database path parameter and environment variables."""
+        import tempfile
+        import os
+        from generate_sample_db import init_db
+        from pathlib import Path
+        from inv_mcp import get_schema, execute_query, get_db_path
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            custom_db = Path(tmpdir) / "custom_test.db"
+            init_db(custom_db)
+
+            # Test get_db_path override parameter
+            self.assertEqual(get_db_path(custom_db), custom_db.resolve())
+
+            # Test get_db_path via environment variable
+            os.environ["INVERTER_DB_PATH"] = str(custom_db)
+            try:
+                self.assertEqual(get_db_path(), custom_db.resolve())
+            finally:
+                del os.environ["INVERTER_DB_PATH"]
+
+            # Test direct tool call with db_path parameter
+            schema = get_schema(db_path=str(custom_db))
+            self.assertIn('inverter_telemetry', schema)
+
+            results = execute_query("SELECT COUNT(*) as cnt FROM inverter_telemetry;", db_path=str(custom_db))
+            self.assertIsInstance(results, list)
+            self.assertGreater(results[0]['cnt'], 0)
+
 if __name__ == '__main__':
     unittest.main()

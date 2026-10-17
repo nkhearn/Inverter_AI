@@ -4,12 +4,23 @@ Generate a sample inverter_logs.db SQLite database with 1-row-per-minute telemet
 over a 7-day period for testing text-to-SQL capabilities.
 """
 
+import argparse
+import os
+import sys
 import sqlite3
 import random
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent / "inverter_logs.db"
+DEFAULT_DB_PATH = Path(__file__).resolve().parent / "inverter_logs.db"
+
+def resolve_db_path(cli_path: str | None = None) -> Path:
+    if cli_path:
+        return Path(cli_path).resolve()
+    env_path = os.getenv("INVERTER_DB_PATH") or os.getenv("DB_PATH")
+    if env_path:
+        return Path(env_path).resolve()
+    return DEFAULT_DB_PATH.resolve()
 
 def init_db(db_path: Path):
     if db_path.exists():
@@ -120,4 +131,9 @@ def init_db(db_path: Path):
     print(f"Database successfully generated at {db_path} with {len(rows)} telemetry rows.")
 
 if __name__ == "__main__":
-    init_db(DB_PATH)
+    parser = argparse.ArgumentParser(description="Generate sample telemetry SQLite database")
+    parser.add_argument("--db-path", "--db", "-d", dest="db_path", type=str, default=None, help="Output path for SQLite database file")
+    args = parser.parse_args()
+
+    db_target = resolve_db_path(args.db_path)
+    init_db(db_target)
