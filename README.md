@@ -34,13 +34,14 @@ An edge-optimized Python application for natural language querying of inverter l
 
 3. **Multi-Provider & Multi-Key Rotation**:
    - Primary support for **Google AI Studio (Gemini 2.0 Flash)** with 1,500 free requests/day.
-   - Secondary fallback endpoints for **GroqCloud (Llama 3.3 70B)** and **OpenRouter (:free endpoints)**.
-   - Support for client-side API key rotation across multiple projects/keys to multiply daily free quotas and bypass rate limits smoothly.
+   - Support for dual authentication modes with Google Gemini: **API Key Credentials** and **Google OAuth 2.0 (User Credentials)**.
+   - Secondary fallback endpoints for **GroqCloud (Llama 3.3 70B)**, **OpenRouter (:free endpoints)**, and **OpenAI (GPT-4o / GPT-4o-mini)**.
+   - Client-side API key rotation across multiple projects/keys to multiply daily free quotas and bypass rate limits smoothly.
    - Mock/Demo mode for offline testing without API keys.
 
 4. **Security & Browser LocalStorage**:
-   - API keys and user credentials are stored exclusively in the user's browser `localStorage`.
-   - Keys are transmitted directly in per-request headers to the orchestrator for processing and never stored on the server disk.
+   - API keys, OAuth access tokens, and user credentials are stored exclusively in the user's browser `localStorage`.
+   - Credentials are transmitted directly in per-request headers/payloads to the orchestrator for processing and are **never** stored on the server disk.
 
 5. **Network Binding**:
    - Web application backend is bound to `0.0.0.0:5115`.
@@ -85,16 +86,78 @@ An edge-optimized Python application for natural language querying of inverter l
 
 ## Configuration & Settings
 
-Navigate to the **Settings & Keys** tab in the web interface to configure:
+Navigate to the **Settings & Keys** tab in the web interface to configure options:
 
 | Setting | Description |
 | :--- | :--- |
 | **Primary LLM Provider** | Select between Google AI Studio, GroqCloud, OpenRouter, OpenAI, or Mock Engine. |
-| **Google Gemini API Keys** | Input one or more Gemini API keys (one per line). Multi-key rotation automatically cycle keys on rate limits. |
-| **Groq / OpenRouter Keys** | Input API keys for secondary providers. |
+| **Google Auth Method** | Choose between `Google API Key(s)` and `Google OAuth 2.0 (User Credentials)`. |
+| **Google Gemini API Keys** | Input one or more Gemini API keys (one per line). Multi-key rotation automatically cycles keys on rate limits. |
+| **Google OAuth Client ID** | (Optional for Browser Auth) Input your OAuth 2.0 Client ID from Google Cloud Console. |
+| **Google OAuth Access Token** | OAuth 2.0 Bearer Token (auto-populated via browser Sign-in or entered manually). |
+| **Secondary Provider Keys** | Input API keys for GroqCloud, OpenRouter, or OpenAI. |
 | **FastMCP Server URL** | Default: `http://127.0.0.1:8000/mcp`. Configures where the orchestrator reaches the MCP server. |
 
 All settings are saved directly in your browser's `localStorage` and persist across sessions.
+
+---
+
+## Authentication Instructions: Google Gemini
+
+The system supports two methods for authenticating with Google AI / Gemini models: **API Key Credentials** and **Google OAuth 2.0 (User Credentials)**.
+
+### Method 1: Google API Key Credentials (Recommended for Quick Setup)
+
+Using API keys is the fastest way to get started with Google AI Studio.
+
+1. **Obtain API Keys**:
+   - Go to [Google AI Studio](https://aistudio.google.com/) and generate one or more API keys.
+2. **Configure Web UI**:
+   - Open the application and go to the **Settings & Keys** tab.
+   - Set **Primary LLM Provider** to `Google AI Studio (Gemini 2.0 Flash)`.
+   - Set **Google Auth Method** to `Google API Key(s)`.
+   - Paste your API key(s) into the **Google Gemini API Keys** box (one key per line).
+3. **Multi-Key Rotation**:
+   - You can enter multiple Gemini API keys (one per line).
+   - If a rate limit (`429 RESOURCE_EXHAUSTED`) is hit on one key, the LLM orchestrator automatically rotates to the next available key, effectively multiplying your daily free request quotas.
+4. **Save Settings**:
+   - Click **Save Settings to Browser Storage**.
+
+---
+
+### Method 2: Google OAuth 2.0 (User Credentials)
+
+Google OAuth 2.0 allows you to authenticate using user credentials / OAuth bearer tokens instead of static API keys.
+
+#### Option A: One-Click Browser Google Sign-In
+1. **Create an OAuth Client ID**:
+   - Open the [Google Cloud Console](https://console.cloud.google.com/).
+   - Navigate to **APIs & Services > Credentials**.
+   - Create an **OAuth 2.0 Client ID** with Application type set to **Web application**.
+   - Under **Authorized JavaScript origins**, add your application's origin URL (e.g., `http://localhost:5115` or `http://<IP-ADDRESS>:5115`).
+   - Enable the **Generative Language API** (`generativelanguage.googleapis.com`) in your Google Cloud project.
+2. **Configure Web UI**:
+   - Go to **Settings & Keys**.
+   - Set **Primary LLM Provider** to `Google AI Studio (Gemini 2.0 Flash)`.
+   - Set **Google Auth Method** to `Google OAuth 2.0 (User Credentials)`.
+   - Paste your Google OAuth Client ID into the **Google OAuth Client ID** field.
+3. **Sign In**:
+   - Click the **🔑 Sign in with Google (Browser OAuth)** button.
+   - Complete the Google authentication popup.
+   - Upon successful sign-in, the **Google OAuth Access Token** field will automatically populate with a fresh OAuth bearer token.
+4. **Save Settings**:
+   - Click **Save Settings to Browser Storage**.
+
+#### Option B: Manual Access Token Input
+If you obtain a Google OAuth 2.0 access token via Google OAuth 2.0 Playground, `gcloud auth print-access-token`, or an external auth flow:
+
+1. Go to **Settings & Keys**.
+2. Set **Primary LLM Provider** to `Google AI Studio`.
+3. Set **Google Auth Method** to `Google OAuth 2.0 (User Credentials)`.
+4. Paste the bearer token (e.g., `ya29.a0A...`) directly into the **Google OAuth Access Token / User Credentials** field.
+5. Click **Save Settings to Browser Storage**.
+
+*Note: Google OAuth access tokens typically expire after 1 hour. Re-authenticate via the Sign in button or update the access token when expired.*
 
 ---
 
