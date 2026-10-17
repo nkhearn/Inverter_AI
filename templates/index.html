@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <div class="app-container">
@@ -99,9 +100,37 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="google-auth-type">Google Auth Method</label>
+                            <select id="google-auth-type">
+                                <option value="api_key">Google API Key(s)</option>
+                                <option value="oauth">Google OAuth 2.0 (User Credentials)</option>
+                            </select>
+                        </div>
+
+                        <!-- Google API Keys Section -->
+                        <div class="form-group" id="google-api-key-group">
                             <label for="gemini-keys">Google Gemini API Keys (One key per line for rotation)</label>
                             <textarea id="gemini-keys" rows="3" placeholder="AIzaSy..."></textarea>
                             <span class="help-text">Free tier: 1,500 RPD per key. Add multiple keys for rotation.</span>
+                        </div>
+
+                        <!-- Google OAuth 2.0 Section -->
+                        <div class="form-group" id="google-oauth-group" style="display: none;">
+                            <label for="google-client-id">Google OAuth Client ID (Optional for Browser Auth)</label>
+                            <input type="text" id="google-client-id" placeholder="1234567890-xyz.apps.googleusercontent.com" />
+                            <span class="help-text">Obtain a Client ID from Google Cloud Console (OAuth 2.0 Web Client).</span>
+
+                            <div style="margin-top: 0.75rem;">
+                                <button type="button" id="google-signin-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px;">
+                                    <span>🔑 Sign in with Google (Browser OAuth)</span>
+                                </button>
+                            </div>
+
+                            <div style="margin-top: 0.75rem;">
+                                <label for="google-access-token">Google OAuth Access Token / User Credentials</label>
+                                <textarea id="google-access-token" rows="2" placeholder="ya29.a0A..."></textarea>
+                                <span class="help-text">OAuth 2.0 Bearer Token (auto-filled on Google Sign-In or manual input).</span>
+                            </div>
                         </div>
 
                         <div class="form-group">

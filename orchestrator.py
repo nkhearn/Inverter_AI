@@ -50,7 +50,9 @@ class LLMOrchestrator:
         provider: str,
         keys: List[str],
         user_prompt: str,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        auth_type: str = "api_key",
+        access_token: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Main execution flow:
@@ -82,7 +84,9 @@ class LLMOrchestrator:
             keys=keys,
             system_instruction=system_instruction,
             prompt=sql_generation_prompt,
-            model_name=model_name
+            model_name=model_name,
+            auth_type=auth_type,
+            access_token=access_token
         )
 
         # Extract SQL string
@@ -126,7 +130,9 @@ class LLMOrchestrator:
             keys=keys,
             system_instruction="You are a helpful telemetry analyst explaining database results clearly.",
             prompt=synthesis_prompt,
-            model_name=model_name
+            model_name=model_name,
+            auth_type=auth_type,
+            access_token=access_token
         )
 
         return {
@@ -144,9 +150,21 @@ class LLMOrchestrator:
         keys: List[str],
         system_instruction: str,
         prompt: str,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        auth_type: str = "api_key",
+        access_token: Optional[str] = None
     ) -> str:
         """Query LLM with retries, backoff, and key rotation."""
+        if provider == "google" and auth_type == "oauth":
+            if not access_token or not access_token.strip():
+                raise ValueError("Google OAuth access token is required when using OAuth authentication mode.")
+            return self._call_google_gemini_oauth(
+                access_token=access_token,
+                system_instruction=system_instruction,
+                prompt=prompt,
+                model=model_name or "gemini-2.0-flash"
+            )
+
         if not keys and provider not in ("mock", "local"):
             raise ValueError(f"No API key provided for provider '{provider}'. Please configure keys in Settings.")
 
@@ -189,7 +207,7 @@ class LLMOrchestrator:
         raise RuntimeError(f"Failed to query provider '{provider}' after {retries} attempts. Last error: {last_exception}")
 
     def _call_google_gemini(self, api_key: str, system_instruction: str, prompt: str, model: str) -> str:
-        """Google GenAI API call."""
+        """Google GenAI API call using API Key."""
         from google import genai
         from google.genai import types
 
@@ -204,6 +222,50 @@ class LLMOrchestrator:
             config=config
         )
         return response.text
+
+    def _call_google_gemini_oauth(self, access_token: str, system_instruction: str, prompt: str, model: str) -> str:
+        """Google GenAI API call using OAuth 2.0 User Credentials / Access Token."""
+        # Clean model name if necessary
+        model_name = model.replace("models/", "")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+
+        headers = {
+            "Authorization": f"Bearer {access_token.strip()}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "system_instruction": {
+                "parts": [{"text": system_instruction}]
+            },
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": prompt}]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.2
+            }
+        }
+
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.post(url, json=payload, headers=headers)
+            if resp.status_code != 200:
+                err_detail = resp.text
+                try:
+                    err_json = resp.json()
+                    if "error" in err_json and "message" in err_json["error"]:
+                        err_detail = err_json["error"]["message"]
+                except Exception:
+                    pass
+                raise RuntimeError(f"Google Gemini OAuth API Error ({resp.status_code}): {err_detail}")
+
+            data = resp.json()
+            try:
+                return data["candidates"][0]["content"]["parts"][0]["text"]
+            except (KeyError, IndexError) as e:
+                raise RuntimeError(f"Unexpected Google Gemini API response format: {data}") from e
 
     def _call_openai_compatible(
         self,
