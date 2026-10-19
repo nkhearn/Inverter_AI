@@ -102,6 +102,9 @@ def process_query(req: QueryRequest):
         )
         return res
     except Exception as e:
+        import traceback
+        print(f"\n[ERROR] Exception processing query for provider '{req.provider}':", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

@@ -69,6 +69,17 @@ class TestInverterAISystem(unittest.TestCase):
             )
         self.assertIn('access token is required', str(ctx.exception))
 
+    def test_google_gemini_api_error_explanation(self):
+        """Test Google Gemini API error handling and explanation when invalid key is provided."""
+        orch = LLMOrchestrator('http://127.0.0.1:8000/mcp')
+        with self.assertRaises(RuntimeError) as ctx:
+            orch.execute_with_llm(
+                provider='google',
+                keys=['invalid_gemini_key_123'],
+                user_prompt='What is the max grid voltage?'
+            )
+        self.assertIn('Google Gemini API Error', str(ctx.exception))
+
     def test_api_query_oauth_missing_token(self):
         """Test FastAPI /api/query endpoint with google provider and oauth auth_type without access token."""
         payload = {
