@@ -1,3 +1,4 @@
+import sys
 import time
 import json
 import asyncio
@@ -199,6 +200,7 @@ class LLMOrchestrator:
             except Exception as e:
                 last_exception = e
                 err_msg = str(e)
+                print(f"[LLMOrchestrator] Provider '{provider}' attempt {attempt + 1}/{retries} failed: {err_msg}", file=sys.stderr, flush=True)
                 if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg or "rate_limit" in err_msg.lower():
                     time.sleep((2 ** attempt) + 0.5)
                 else:
@@ -209,19 +211,45 @@ class LLMOrchestrator:
     def _call_google_gemini(self, api_key: str, system_instruction: str, prompt: str, model: str) -> str:
         """Google GenAI API call using API Key."""
         from google import genai
-        from google.genai import types
+        from google.genai import types, errors
 
-        client = genai.Client(api_key=api_key)
-        config = types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            temperature=0.2
-        )
-        response = client.models.generate_content(
-            model=model,
-            contents=prompt,
-            config=config
-        )
-        return response.text
+        try:
+            client = genai.Client(api_key=api_key)
+            config = types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.2
+            )
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=config
+            )
+
+            text = None
+            try:
+                text = response.text
+            except (AttributeError, ValueError):
+                pass
+
+            if text:
+                return text
+
+            if hasattr(response, "candidates") and response.candidates:
+                candidate = response.candidates[0]
+                finish_reason = getattr(candidate, "finish_reason", None)
+                safety_ratings = getattr(candidate, "safety_ratings", None)
+                raise RuntimeError(
+                    f"Gemini API returned response with no text. Finish reason: {finish_reason}. "
+                    f"Safety ratings: {safety_ratings}"
+                )
+            raise RuntimeError(f"Gemini API returned an empty response format: {response}")
+
+        except errors.APIError as e:
+            raise RuntimeError(f"Google Gemini API Error (code {e.code}): {e.message}") from e
+        except Exception as e:
+            if "google" in type(e).__module__:
+                raise RuntimeError(f"Google Gemini API Request Error: {e}") from e
+            raise
 
     def _call_google_gemini_oauth(self, access_token: str, system_instruction: str, prompt: str, model: str) -> str:
         """Google GenAI API call using OAuth 2.0 User Credentials / Access Token."""
